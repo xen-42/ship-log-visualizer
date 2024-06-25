@@ -1,0 +1,111 @@
+[gd_scene load_steps=7 format=3 uid="uid://bhrumao3xyt0k"]
+
+[ext_resource type="Texture2D" uid="uid://blb0gssr2mvlb" path="res://assets/background.png" id="1_ytiey"]
+[ext_resource type="Texture2D" uid="uid://b14hmux4ngt6c" path="res://assets/reticle.png" id="2_fasd5"]
+[ext_resource type="Script" path="res://ShipLogsRoot.cs" id="2_k3lod"]
+[ext_resource type="PackedScene" uid="uid://5pfcul2avalu" path="res://ShipLogEntryDisplay.tscn" id="2_v87lv"]
+[ext_resource type="Script" path="res://FileControl.cs" id="5_smg78"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_qgnqi"]
+font_size = 32
+
+[node name="ShipLogVisualizer" type="Node2D"]
+
+[node name="BackgroundColor" type="ColorRect" parent="."]
+offset_left = -960.0
+offset_top = -540.0
+offset_right = 960.0
+offset_bottom = 540.0
+color = Color(0.00392157, 0.0627451, 0.105882, 1)
+
+[node name="ShipComputerForeground" type="Sprite2D" parent="."]
+z_index = 1
+texture = ExtResource("1_ytiey")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="ShipLogsRoot" type="Node2D" parent="."]
+script = ExtResource("2_k3lod")
+_shipLogEntryScene = ExtResource("2_v87lv")
+
+[node name="Reticle" type="Sprite2D" parent="."]
+modulate = Color(1, 1, 1, 0.45098)
+texture = ExtResource("2_fasd5")
+
+[node name="FileControl" type="Control" parent="." node_paths=PackedStringArray("_openFileButton", "_openFileDialog", "_label", "_shipLogsRoot", "_reloadButton", "_options")]
+z_index = 100
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = -960.0
+offset_top = -540.0
+offset_right = 960.0
+offset_bottom = -428.0
+grow_horizontal = 2
+script = ExtResource("5_smg78")
+_openFileButton = NodePath("HBoxContainer/Button")
+_openFileDialog = NodePath("FileDialog")
+_label = NodePath("HBoxContainer/Label")
+_shipLogsRoot = NodePath("../ShipLogsRoot")
+_reloadButton = NodePath("HBoxContainer/ReloadButton")
+_options = NodePath("HBoxContainer/OptionButton")
+
+[node name="Panel" type="Panel" parent="FileControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = -63.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="FileControl"]
+clip_contents = true
+layout_mode = 2
+offset_right = 1920.0
+offset_bottom = 53.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Button" type="Button" parent="FileControl/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Select root mod folder"
+
+[node name="Spacer" type="Control" parent="FileControl/HBoxContainer"]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FileControl/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+label_settings = SubResource("LabelSettings_qgnqi")
+clip_text = true
+text_overrun_behavior = 1
+
+[node name="StarSystemLabel" type="Label" parent="FileControl/HBoxContainer"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "Star system:"
+label_settings = SubResource("LabelSettings_qgnqi")
+clip_text = true
+text_overrun_behavior = 1
+
+[node name="OptionButton" type="OptionButton" parent="FileControl/HBoxContainer"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+
+[node name="ReloadButton" type="Button" parent="FileControl/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Reload"
+
+[node name="FileDialog" type="FileDialog" parent="FileControl"]
+mode = 2
+title = "Open a Directory"
+initial_position = 2
+size = Vector2i(400, 400)
+ok_button_text = "Select Current Folder"
+file_mode = 2
+access = 2
+use_native_dialog = true

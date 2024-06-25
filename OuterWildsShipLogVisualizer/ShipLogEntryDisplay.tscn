@@ -1,0 +1,89 @@
+[gd_scene load_steps=6 format=3 uid="uid://5pfcul2avalu"]
+
+[ext_resource type="Script" path="res://ShipLogEntryDisplay.cs" id="1_o1y4u"]
+[ext_resource type="PackedScene" uid="uid://cymxtds8s7x64" path="res://ShipLogLink.tscn" id="2_nom5t"]
+[ext_resource type="Texture2D" uid="uid://l0qr8klwdbyw" path="res://assets/border.png" id="3_bdlln"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_e4eue"]
+font_size = 64
+font_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_35uxq"]
+font_size = 360
+font_color = Color(0.996078, 0.619608, 0.34902, 1)
+
+[node name="ShipLogEntryDisplay" type="Node2D" node_paths=PackedStringArray("_label", "_nameBackground", "_revealedImage", "_border")]
+scale = Vector2(0.2, 0.2)
+script = ExtResource("1_o1y4u")
+_shipLogLinkScene = ExtResource("2_nom5t")
+_label = NodePath("CenterOffset/NameBackground/Label")
+_nameBackground = NodePath("CenterOffset/NameBackground")
+_revealedImage = NodePath("CenterOffset/EntryCardBackground/RevealedImage")
+_border = NodePath("CenterOffset/Border")
+
+[node name="CenterOffset" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -256.0
+offset_top = -338.0
+offset_right = -256.0
+offset_bottom = -338.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NameBackground" type="ColorRect" parent="CenterOffset"]
+layout_mode = 0
+offset_right = 512.0
+offset_bottom = 164.0
+color = Color(0.701961, 0.301961, 0.317647, 1)
+
+[node name="Label" type="Label" parent="CenterOffset/NameBackground"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "The Vessel"
+label_settings = SubResource("LabelSettings_e4eue")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="EntryCardBackground" type="Control" parent="CenterOffset"]
+custom_minimum_size = Vector2(512, 512)
+anchors_preset = 0
+offset_top = 164.0
+offset_right = 512.0
+offset_bottom = 676.0
+
+[node name="Label" type="Label" parent="CenterOffset/EntryCardBackground"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "?"
+label_settings = SubResource("LabelSettings_35uxq")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="RevealedImage" type="TextureRect" parent="CenterOffset/EntryCardBackground"]
+custom_minimum_size = Vector2(256, 256)
+layout_mode = 0
+offset_right = 512.0
+offset_bottom = 512.0
+expand_mode = 2
+
+[node name="Border" type="TextureRect" parent="CenterOffset"]
+modulate = Color(0.701961, 0.301961, 0.317647, 1)
+custom_minimum_size = Vector2(256, 256)
+layout_mode = 0
+offset_top = 164.0
+offset_right = 512.0
+offset_bottom = 676.0
+texture = ExtResource("3_bdlln")
