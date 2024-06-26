@@ -68,7 +68,6 @@ public partial class ShipLogEntryDisplay : Node2D
         else
         {
             GD.PrintErr($"Couldn't find texture at {texturePath}");
-            _label.Text = texturePath;
             _revealedImage.Visible = false;
         }
 
