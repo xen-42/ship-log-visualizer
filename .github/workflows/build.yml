@@ -3,8 +3,41 @@ on:
   workflow_dispatch:
 
 jobs:
+  pre_job:
+    name: Check For Other Releases
+    outputs:
+        version: ${{ steps.out.outputs.version }}
+        exists: ${{ steps.out.outputs.exists }}
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout
+          uses: "actions/checkout@v3"
+          
+        - name: Fetch
+          run: git fetch
+
+        - name: Read Manifest
+          id: read-manifest
+          run: echo "manifest=$(< ./OuterWildsShipLogVisualizer/version.txt sed ':a;N;$!ba;s/\n/ /g')" >> $GITHUB_OUTPUT
+
+        - name: Check For Release
+          id: check-tag
+          run: echo "exists=$(git ls-remote --exit-code --tags origin ${{ env.TAG }} >/dev/null 2>&1 && echo true || echo false)" >> $GITHUB_OUTPUT
+          env:
+            TAG: "v${{steps.read-manifest.outputs.manifest.version}}"
+        
+        - name: Output Version Info
+          id: out
+          run: | 
+            echo "version=${{steps.read-manifest.outputs.manifest}}" >> $GITHUB_OUTPUT
+            echo "exists=${{steps.check-tag.outputs.exists}}" >> $GITHUB_OUTPUT
+
+        - name: Error
+          if: ${{ steps.out.outputs.exists != 'false' && (!inputs.bypassCheck) }}
+          run: echo "::error file=version.txt,title=Refusing to Release::Your update was not released because there is already a release with the version in version.txt"
   Build:
     name: Build
+    needs: pre_job
     runs-on: windows-latest
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: true
@@ -68,3 +101,22 @@ jobs:
         with:
           name: OuterWildsShipLogVisualizer
           path: ./OuterWildsShipLogVisualizer/StandaloneWindows64
+      
+      - name: Zip Asset
+        run: |
+          cd OuterWildsShipLogVisualizer/StandaloneWindows64
+          zip -r OuterWildsShipLogVisualizer.zip *
+          mv OuterWildsShipLogVisualizer.zip ..
+          cd ..
+      
+      - name: Upload Asset
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          commit: main
+          tag: v${{ needs.pre_job.outputs.version }}
+          name: Version ${{ needs.pre_job.outputs.version }}
+          omitBodyDuringUpdate: true
+          artifacts: "OuterWildsShipLogVisualizer.zip"
+          draft: true
+          prerelease: false
