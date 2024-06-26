@@ -8,9 +8,6 @@ using System.Linq;
 
 public partial class ShipLogEntryDisplay : Node2D
 {
-    private static Dictionary<string, ShipLogEntryDisplay> _entries = new();
-    public static void ClearCache() => _entries.Clear();
-
     [ExportCategory("Nodes")]
     [Export] private Label _label;
     [Export] private ColorRect _nameBackground;
@@ -73,17 +70,15 @@ public partial class ShipLogEntryDisplay : Node2D
         {
             this.Scale *= 2f;
         }
-
-        _entries.Add(_entry.id, this);
     }
 
-    public void PostInit()
+    public void LinkRumors()
     {
         foreach (var arrowSource in _entry.rumorFacts.Select(x => x.sourceID).Where(x => !string.IsNullOrEmpty(x)))
         {
             GD.Print($"{_entry.id} pointed to from {arrowSource}");
 
-            if (!_entries.ContainsKey(arrowSource))
+            if (!ShipLogsRoot.Instance.Entries.ContainsKey(arrowSource))
             {
                 GD.PrintErr($"Couldn't find ship log {arrowSource}");
             }
@@ -92,7 +87,7 @@ public partial class ShipLogEntryDisplay : Node2D
                 var shipLogLink = _shipLogLinkScene.Instantiate<ShipLogLink>();
                 this.GetParent().AddChild(shipLogLink);
                 this.GetParent().MoveChild(shipLogLink, 0);
-                var source = _entries[arrowSource];
+                var source = ShipLogsRoot.Instance.Entries[arrowSource];
                 shipLogLink.SetExtents(source.Position, this.Position);
             }
         }

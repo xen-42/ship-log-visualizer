@@ -2,12 +2,8 @@
 using Newtonsoft.Json;
 using OuterWildsShipLogVisualizer.External;
 using OuterWildsShipLogVisualizer.OuterWildsXML;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace OuterWildsShipLogVisualizer;
 
@@ -15,9 +11,11 @@ public static class StockSystemLoader
 {
     public static void Load()
     {
+        // We are deserializing the data from Outer Wilds Ventures (https://github.com/nottldr/outer-wilds-ventures) and converting it to our format 
         using var file = FileAccess.Open("res://assets/stockShiplogs.json", FileAccess.ModeFlags.Read);
         var stockShipLogInfos = JsonConvert.DeserializeObject<StockShipLogInfo[]>(file.GetAsText());
 
+        // We can define the curiosity colours in advance
         var curiosities = new Curiosity[]
         {
             new Curiosity() { id = "TIME_LOOP", color = new MColor(180, 118, 74), highlightColor = new MColor(255, 167, 104)},
@@ -26,15 +24,17 @@ public static class StockSystemLoader
             new Curiosity() { id = "INVISIBLE_PLANET", color = new MColor(29, 74, 148), highlightColor = new MColor(50, 128, 255)},
             new Curiosity() { id = "SUNKEN_MODULE", color = new MColor(56, 138, 93), highlightColor = new MColor(104, 255, 172)},
         };
+
+        // We read the entry positions (for the StarSystemConfig) and the regular entries from the Outer Wilds Ventures data
         var entryPositions = new List<EntryPosition>();
-
-        var shipLogModule = new ShipLogModule() { spriteFolder = "res://assets/stockShipLogs" };
-
         var entries = new Dictionary<string, ShipLogEntry>();
-
         foreach (var stockShipLog in stockShipLogInfos)
         {
-            entryPositions.Add(new EntryPosition() { id = stockShipLog.id, position = new MVector2() { x = (int)stockShipLog.position[0], y = (int)stockShipLog.position[1] } });
+            entryPositions.Add(new EntryPosition() 
+            { 
+                id = stockShipLog.id, position = new MVector2() { x = (int)stockShipLog.position[0], y = (int)stockShipLog.position[1] } 
+            });
+
             entries[stockShipLog.id] = new ShipLogEntry()
             {
                id = stockShipLog.id,
@@ -48,6 +48,7 @@ public static class StockSystemLoader
             };
         }
 
+        // We loop through the entries a second time to update the childEntries
         foreach (var entry in entries.Values)
         {
             if (!string.IsNullOrEmpty(entry.parentID))
@@ -63,12 +64,16 @@ public static class StockSystemLoader
             entryPositions = entryPositions.ToArray()
         };
 
+        // The only purpose of the ShipLogModule here is to point out where the sprites are
+        var shipLogModule = new ShipLogModule() { spriteFolder = "res://assets/stockShiplogSprites" };
+
+        // We add all the entries to the ShipLogsRoot of the visualizer
         foreach (var entry in entries.Values)
         {
             var shipLogEntryDisplay = ShipLogsRoot.Instance.ShipLogEntryScene.Instantiate<ShipLogEntryDisplay>();
             ShipLogsRoot.Instance.AddChild(shipLogEntryDisplay);
             shipLogEntryDisplay.SetShipLogEntry(string.Empty, shipLogModule, entry, solarSystemConfig);
-            ShipLogsRoot.Instance.Entries.Add(shipLogEntryDisplay);
+            ShipLogsRoot.Instance.Entries[entry.id] = shipLogEntryDisplay;
         }
     }
 

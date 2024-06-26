@@ -14,7 +14,9 @@ public partial class ShipLogsRoot : Node2D
     [Export] public PackedScene ShipLogEntryScene { get; private set; }
 
     public Dictionary<string, StarSystemConfig> StarSystems { get; private set; } = new();
-    public List<ShipLogEntryDisplay> Entries { get; private set; } = new();
+    public Dictionary<string, ShipLogEntryDisplay> Entries { get; private set; } = new();
+
+    private static string _currentStarSystem;
 
     public static ShipLogsRoot Instance { get; private set; }
 
@@ -27,8 +29,9 @@ public partial class ShipLogsRoot : Node2D
     public bool Load(string rootFolder, string starSystem)
     {
         Entries.Clear();
-        ShipLogEntryDisplay.ClearCache();
         StarSystems.Clear();
+
+        _currentStarSystem = starSystem;
 
         try
         {
@@ -42,30 +45,23 @@ public partial class ShipLogsRoot : Node2D
             var systemsPath = $"{rootFolder}/systems";
             var planetsPath = $"{rootFolder}/planets";
 
-            var planetShipLogModules = new List<ShipLogModule>();
-
             using var systemDir = DirAccess.Open(systemsPath);
             foreach (var file in systemDir.GetFiles())
             {
                 if (!file.EndsWith(".json")) continue;
 
-                using var systemFile = FileAccess.Open(System.IO.Path.Combine(systemsPath, file), FileAccess.ModeFlags.Read);
-                try
+                var path = System.IO.Path.Combine(systemsPath, file);
+                var name = System.IO.Path.GetFileNameWithoutExtension(file);
+                if (TryLoadStarSystem(path, out var starSystemConfig))
                 {
-                    var starSystemName = System.IO.Path.GetFileNameWithoutExtension(file);
-                    StarSystems[starSystemName] = (JsonConvert.DeserializeObject<StarSystemConfig>(systemFile.GetAsText()));
-                    GD.Print("Loaded star system " + starSystemName);
-                }
-                catch (Exception e)
-                {
-                    GD.PrintErr($"Couldn't load star system {file} - {e}");
+                    StarSystems[name] = starSystemConfig;
                 }
             }
 
             // Default to first system if our selection doesn't exist
-            if (!StarSystems.ContainsKey(starSystem))
+            if (!StarSystems.ContainsKey(_currentStarSystem))
             {
-                starSystem = StarSystems.Keys.First();
+                _currentStarSystem = StarSystems.Keys.First();
             }
 
             using var planetsDir = DirAccess.Open(planetsPath);
@@ -74,77 +70,22 @@ public partial class ShipLogsRoot : Node2D
                 if (!file.EndsWith(".json")) continue;
 
                 var path = System.IO.Path.Combine(planetsPath, file);
-                using var planetFile = FileAccess.Open(path, FileAccess.ModeFlags.Read);
-                try
+                if (TryLoadShipLogModule(path, out var shipLogModule))
                 {
-                    var planetConfig = JsonConvert.DeserializeObject<Dictionary<string, object>>(planetFile.GetAsText());
-                    var planetStarSystem = "SolarSystem";
-                    if (planetConfig.ContainsKey("starSystem"))
-                    {
-                        planetStarSystem = planetConfig["starSystem"].ToString();
-                    }
-                    if (planetStarSystem == starSystem)
-                    {
-                        planetShipLogModules.Add(JsonConvert.DeserializeObject<ShipLogModule>(planetConfig["ShipLog"].ToString()));
-                    }
-                }
-                catch (Exception e)
-                {
-                    GD.PrintErr($"Couldn't load ship logs for planet {path} - {e}");
+                    if (string.IsNullOrEmpty(shipLogModule.xmlFile)) continue;
+
+                    LoadShipLogXML(rootFolder, shipLogModule);
                 }
             }
 
-            foreach (var shipLogModule in planetShipLogModules)
-            {
-                if (string.IsNullOrEmpty(shipLogModule.xmlFile)) continue;
-
-                var path = System.IO.Path.Combine(rootFolder, shipLogModule.xmlFile);
-                try
-                {
-                    using var file = FileAccess.Open(path, FileAccess.ModeFlags.Read);
-                    var xml = new XmlDocument();
-                    xml.LoadXml(file.GetAsText());
-                    XElement xelement = XElement.Parse(xml.DocumentElement.OuterXml);
-                    string astroObjectID = xelement.Element("ID").Value;
-                    foreach (XElement entryNode in xelement.Elements("Entry"))
-                    {
-                        var entry = new ShipLogEntry(astroObjectID, entryNode, "");
-
-                        var shipLogEntryDisplay = ShipLogEntryScene.Instantiate<ShipLogEntryDisplay>();
-                        this.AddChild(shipLogEntryDisplay);
-                        shipLogEntryDisplay.SetShipLogEntry(rootFolder, shipLogModule, entry, StarSystems[starSystem]);
-
-                        entry.childEntries = new List<ShipLogEntry>();
-                        foreach (XElement childEntryXML in entryNode.Elements("Entry"))
-                        {
-                            var childEntry = new ShipLogEntry(astroObjectID, childEntryXML, entry.id);
-                            entry.childEntries.Add(childEntry);
-
-                            var childShipLogEntryDisplay = ShipLogEntryScene.Instantiate<ShipLogEntryDisplay>();
-                            this.AddChild(childShipLogEntryDisplay);
-                            childShipLogEntryDisplay.SetShipLogEntry(rootFolder, shipLogModule, childEntry, StarSystems[starSystem]);
-                            childShipLogEntryDisplay.ZIndex++;
-
-                            Entries.Add(childShipLogEntryDisplay);
-                        }
-
-                        Entries.Add(shipLogEntryDisplay);
-                    }
-                }
-                catch (Exception e)
-                {
-                    GD.PrintErr($"Couldn't load ship log xml at {path} - {e}");
-                }
-            }
-
-            if (starSystem == "SolarSystem")
+            if (_currentStarSystem == "SolarSystem")
             {
                 StockSystemLoader.Load();
             }
 
-            foreach (var entry in Entries)
+            foreach (var entry in Entries.Values)
             {
-                entry.PostInit();
+                entry.LinkRumors();
             }
         }
         catch (Exception e)
@@ -157,6 +98,102 @@ public partial class ShipLogsRoot : Node2D
             return false;
         }
         return Entries.Any();
+    }
+
+    private static bool TryLoadStarSystem(string path, out StarSystemConfig config)
+    {
+        using var systemFile = FileAccess.Open(path, FileAccess.ModeFlags.Read);
+        try
+        {
+            config = JsonConvert.DeserializeObject<StarSystemConfig>(systemFile.GetAsText());
+            return true;
+        }
+        catch (Exception e)
+        {
+            GD.PrintErr($"Couldn't load star system {path} - {e}");
+        }
+
+        config = null;
+        return false;
+    }
+
+    private static bool TryLoadShipLogModule(string path, out ShipLogModule shipLogModule)
+    {
+        try
+        {
+            using var planetFile = FileAccess.Open(path, FileAccess.ModeFlags.Read);
+            var planetConfig = JsonConvert.DeserializeObject<Dictionary<string, object>>(planetFile.GetAsText());
+
+            // NH defaults the null starSystem value to SolarSystem
+            var planetStarSystem = "SolarSystem";
+            if (planetConfig.ContainsKey("starSystem"))
+            {
+                planetStarSystem = planetConfig["starSystem"].ToString();
+            }
+
+            if (planetStarSystem == _currentStarSystem)
+            {
+                shipLogModule = JsonConvert.DeserializeObject<ShipLogModule>(planetConfig["ShipLog"].ToString());
+                return true;
+            }
+        }
+        catch (Exception e)
+        {
+            GD.PrintErr($"Couldn't load ship logs for planet {path} - {e}");
+        }
+
+        shipLogModule = null;
+        return false;
+    }
+
+    private void LoadShipLogXML(string rootFolder, ShipLogModule shipLogModule)
+    {
+        var xmlPath = System.IO.Path.Combine(rootFolder, shipLogModule.xmlFile);
+
+        try
+        {
+            // To properly search through the XML file we must convert it to an XElement
+            using var file = FileAccess.Open(xmlPath, FileAccess.ModeFlags.Read);
+            var xml = new XmlDocument();
+            xml.LoadXml(file.GetAsText());
+            XElement xelement = XElement.Parse(xml.DocumentElement.OuterXml);
+
+            var astroObjectID = xelement.Element("ID").Value;
+
+            // Reading each ship log entry in the xml file
+            foreach (XElement entryNode in xelement.Elements("Entry"))
+            {
+                var entry = new ShipLogEntry(astroObjectID, entryNode, "");
+
+                // Create a display for the root entry and add it to our scene
+                var shipLogEntryDisplay = ShipLogEntryScene.Instantiate<ShipLogEntryDisplay>();
+                this.AddChild(shipLogEntryDisplay);
+                shipLogEntryDisplay.SetShipLogEntry(rootFolder, shipLogModule, entry, StarSystems[_currentStarSystem]);
+
+                // Go through all its children and add them if applicable
+                entry.childEntries = new List<ShipLogEntry>();
+                foreach (XElement childEntryXML in entryNode.Elements("Entry"))
+                {
+                    var childEntry = new ShipLogEntry(astroObjectID, childEntryXML, entry.id);
+                    entry.childEntries.Add(childEntry);
+
+                    var childShipLogEntryDisplay = ShipLogEntryScene.Instantiate<ShipLogEntryDisplay>();
+                    this.AddChild(childShipLogEntryDisplay);
+                    childShipLogEntryDisplay.SetShipLogEntry(rootFolder, shipLogModule, childEntry, StarSystems[_currentStarSystem]);
+
+                    // Want to make sure it appears over its parent if there is overlap
+                    childShipLogEntryDisplay.ZIndex++;
+
+                    Entries[childEntry.id] = childShipLogEntryDisplay;
+                }
+
+                Entries[entry.id] = shipLogEntryDisplay;
+            }
+        }
+        catch (Exception e)
+        {
+            GD.PrintErr($"Couldn't load ship log xml at {xmlPath} - {e}");
+        }
     }
 
     public override void _Process(double delta)
@@ -201,10 +238,4 @@ public partial class ShipLogsRoot : Node2D
             AdjustForScale();
         }
     }
-
-    private void DisplayStockShipLogs()
-    {
-
-    }
-
 }
