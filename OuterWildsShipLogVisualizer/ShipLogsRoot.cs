@@ -11,13 +11,22 @@ using System.Xml.Linq;
 
 public partial class ShipLogsRoot : Node2D
 {
-    [Export] private PackedScene _shipLogEntryScene;
+    [Export] public PackedScene ShipLogEntryScene { get; private set; }
 
     public Dictionary<string, StarSystemConfig> StarSystems { get; private set; } = new();
+    public List<ShipLogEntryDisplay> Entries { get; private set; } = new();
+
+    public static ShipLogsRoot Instance { get; private set; }
+
+    public override void _Ready()
+    {
+        base._Ready();
+        Instance = this;
+    }
 
     public bool Load(string rootFolder, string starSystem)
     {
-        var entries = new List<ShipLogEntryDisplay>();
+        Entries.Clear();
         ShipLogEntryDisplay.ClearCache();
         StarSystems.Clear();
 
@@ -101,7 +110,7 @@ public partial class ShipLogsRoot : Node2D
                     {
                         var entry = new ShipLogEntry(astroObjectID, entryNode, "");
 
-                        var shipLogEntryDisplay = _shipLogEntryScene.Instantiate<ShipLogEntryDisplay>();
+                        var shipLogEntryDisplay = ShipLogEntryScene.Instantiate<ShipLogEntryDisplay>();
                         this.AddChild(shipLogEntryDisplay);
                         shipLogEntryDisplay.SetShipLogEntry(rootFolder, shipLogModule, entry, StarSystems[starSystem]);
 
@@ -111,15 +120,15 @@ public partial class ShipLogsRoot : Node2D
                             var childEntry = new ShipLogEntry(astroObjectID, childEntryXML, entry.id);
                             entry.childEntries.Add(childEntry);
 
-                            var childShipLogEntryDisplay = _shipLogEntryScene.Instantiate<ShipLogEntryDisplay>();
+                            var childShipLogEntryDisplay = ShipLogEntryScene.Instantiate<ShipLogEntryDisplay>();
                             this.AddChild(childShipLogEntryDisplay);
                             childShipLogEntryDisplay.SetShipLogEntry(rootFolder, shipLogModule, childEntry, StarSystems[starSystem]);
                             childShipLogEntryDisplay.ZIndex++;
 
-                            entries.Add(childShipLogEntryDisplay);
+                            Entries.Add(childShipLogEntryDisplay);
                         }
 
-                        entries.Add(shipLogEntryDisplay);
+                        Entries.Add(shipLogEntryDisplay);
                     }
                 }
                 catch (Exception e)
@@ -128,7 +137,12 @@ public partial class ShipLogsRoot : Node2D
                 }
             }
 
-            foreach (var entry in entries)
+            if (starSystem == "SolarSystem")
+            {
+                StockSystemLoader.Load();
+            }
+
+            foreach (var entry in Entries)
             {
                 entry.PostInit();
             }
@@ -142,7 +156,7 @@ public partial class ShipLogsRoot : Node2D
             GD.PrintErr(e);
             return false;
         }
-        return entries.Any();
+        return Entries.Any();
     }
 
     public override void _Process(double delta)
@@ -186,6 +200,11 @@ public partial class ShipLogsRoot : Node2D
             Scale = Vector2.One * Mathf.Max(Scale.X * (1f - (float)delta * cameraSpeed), 0.5f);
             AdjustForScale();
         }
+    }
+
+    private void DisplayStockShipLogs()
+    {
+
     }
 
 }

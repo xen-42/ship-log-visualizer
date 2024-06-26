@@ -41,7 +41,6 @@ public partial class FileControl : Control
                 _options.Clear();
                 foreach (var system in _shipLogsRoot.StarSystems.Keys)
                 {
-                    GD.Print(system + " GRUH");
                     _options.AddItem(system);
                 }
                 _options.Selected = _shipLogsRoot.StarSystems.Keys.ToList().IndexOf(selectedSolarSystem);

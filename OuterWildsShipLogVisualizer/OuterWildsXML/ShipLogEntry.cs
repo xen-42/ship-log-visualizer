@@ -24,6 +24,8 @@ public class ShipLogEntry
     [NonSerialized]
     public List<ShipLogEntry> childEntries;
 
+    public ShipLogEntry() { }
+
     public ShipLogEntry(string astroObjectID, XElement entryNode, string parentID = "")
     {
         this.astroObjectID = astroObjectID;

@@ -26,7 +26,7 @@ texture = ExtResource("1_ytiey")
 
 [node name="ShipLogsRoot" type="Node2D" parent="."]
 script = ExtResource("2_k3lod")
-_shipLogEntryScene = ExtResource("2_v87lv")
+ShipLogEntryScene = ExtResource("2_v87lv")
 
 [node name="Reticle" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.45098)

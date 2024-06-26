@@ -15,11 +15,11 @@ font_color = Color(0.996078, 0.619608, 0.34902, 1)
 [node name="ShipLogEntryDisplay" type="Node2D" node_paths=PackedStringArray("_label", "_nameBackground", "_revealedImage", "_border")]
 scale = Vector2(0.2, 0.2)
 script = ExtResource("1_o1y4u")
-_shipLogLinkScene = ExtResource("2_nom5t")
 _label = NodePath("CenterOffset/NameBackground/Label")
 _nameBackground = NodePath("CenterOffset/NameBackground")
 _revealedImage = NodePath("CenterOffset/EntryCardBackground/RevealedImage")
 _border = NodePath("CenterOffset/Border")
+_shipLogLinkScene = ExtResource("2_nom5t")
 
 [node name="CenterOffset" type="Control" parent="."]
 layout_mode = 3
@@ -58,6 +58,15 @@ anchors_preset = 0
 offset_top = 164.0
 offset_right = 512.0
 offset_bottom = 676.0
+
+[node name="ColorRect" type="ColorRect" parent="CenterOffset/EntryCardBackground"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.00392157, 0.0627451, 0.105882, 1)
 
 [node name="Label" type="Label" parent="CenterOffset/EntryCardBackground"]
 layout_mode = 1

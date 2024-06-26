@@ -30,6 +30,12 @@ public class ShipLogFact
 
     public float startRevealTime;
 
+    public ShipLogFact(string entryID, bool rumor)
+    {
+        this.entryID = entryID;
+        this.rumor = rumor;
+    }
+
     public ShipLogFact(string entryID, bool rumor, XElement factNode, string entryName)
     {
         this.entryID = entryID;
