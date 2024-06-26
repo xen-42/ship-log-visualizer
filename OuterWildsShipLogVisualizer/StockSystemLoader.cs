@@ -12,6 +12,7 @@ public static class StockSystemLoader
     public static void Load()
     {
         // We are deserializing the data from Outer Wilds Ventures (https://github.com/nottldr/outer-wilds-ventures) and converting it to our format 
+        // Comparing it to base game it seems its actually wrong, but close enough and I'm lazy!
         using var file = FileAccess.Open("res://assets/stockShiplogs.json", FileAccess.ModeFlags.Read);
         var stockShipLogInfos = JsonConvert.DeserializeObject<StockShipLogInfo[]>(file.GetAsText());
 
@@ -32,7 +33,7 @@ public static class StockSystemLoader
         {
             entryPositions.Add(new EntryPosition() 
             { 
-                id = stockShipLog.id, position = new MVector2() { x = (int)stockShipLog.position[0], y = (int)stockShipLog.position[1] } 
+                id = stockShipLog.id, position = new MVector2(stockShipLog.position[0], stockShipLog.position[1]) 
             });
 
             entries[stockShipLog.id] = new ShipLogEntry()

@@ -6,6 +6,7 @@ using OuterWildsShipLogVisualizer.OuterWildsXML;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -24,59 +25,62 @@ public partial class ShipLogsRoot : Node2D
     {
         base._Ready();
         Instance = this;
+
+        // Start by displaying stock solar system
+        Load(string.Empty, "SolarSystem");
     }
 
     public bool Load(string rootFolder, string starSystem)
     {
-        Entries.Clear();
-        StarSystems.Clear();
+        Clear();
 
         _currentStarSystem = starSystem;
 
+        var flagHasEntries = false;
+
         try
         {
-            foreach (var child in this.GetChildren())
+            if (!string.IsNullOrEmpty(rootFolder))
             {
-                child.QueueFree();
-            }
+                var systemsPath = $"{rootFolder}/systems";
+                var planetsPath = $"{rootFolder}/planets";
 
-            this.Position = Vector2.Zero;
-
-            var systemsPath = $"{rootFolder}/systems";
-            var planetsPath = $"{rootFolder}/planets";
-
-            using var systemDir = DirAccess.Open(systemsPath);
-            foreach (var file in systemDir.GetFiles())
-            {
-                if (!file.EndsWith(".json")) continue;
-
-                var path = System.IO.Path.Combine(systemsPath, file);
-                var name = System.IO.Path.GetFileNameWithoutExtension(file);
-                if (TryLoadStarSystem(path, out var starSystemConfig))
+                using var systemDir = DirAccess.Open(systemsPath);
+                foreach (var file in systemDir.GetFiles())
                 {
-                    StarSystems[name] = starSystemConfig;
+                    if (!file.EndsWith(".json")) continue;
+
+                    var path = System.IO.Path.Combine(systemsPath, file);
+                    var name = System.IO.Path.GetFileNameWithoutExtension(file);
+                    if (TryLoadStarSystem(path, out var starSystemConfig))
+                    {
+                        StarSystems[name] = starSystemConfig;
+                    }
+                }
+
+                // Default to first system if our selection doesn't exist
+                if (!StarSystems.ContainsKey(_currentStarSystem))
+                {
+                    _currentStarSystem = StarSystems.Keys.First();
+                }
+
+                using var planetsDir = DirAccess.Open(planetsPath);
+                foreach (var file in planetsDir.GetAllFiles())
+                {
+                    if (!file.EndsWith(".json")) continue;
+
+                    var path = System.IO.Path.Combine(planetsPath, file);
+                    if (TryLoadShipLogModule(path, out var shipLogModule))
+                    {
+                        if (string.IsNullOrEmpty(shipLogModule.xmlFile)) continue;
+
+                        LoadShipLogXML(rootFolder, shipLogModule);
+                    }
                 }
             }
 
-            // Default to first system if our selection doesn't exist
-            if (!StarSystems.ContainsKey(_currentStarSystem))
-            {
-                _currentStarSystem = StarSystems.Keys.First();
-            }
-
-            using var planetsDir = DirAccess.Open(planetsPath);
-            foreach (var file in planetsDir.GetAllFiles())
-            {
-                if (!file.EndsWith(".json")) continue;
-
-                var path = System.IO.Path.Combine(planetsPath, file);
-                if (TryLoadShipLogModule(path, out var shipLogModule))
-                {
-                    if (string.IsNullOrEmpty(shipLogModule.xmlFile)) continue;
-
-                    LoadShipLogXML(rootFolder, shipLogModule);
-                }
-            }
+            // Check before loading the stock system
+            flagHasEntries = Entries.Any();
 
             if (_currentStarSystem == "SolarSystem")
             {
@@ -90,14 +94,20 @@ public partial class ShipLogsRoot : Node2D
         }
         catch (Exception e)
         {
-            foreach (var child in GetChildren())
-            {
-                child.QueueFree();
-            }
+            Clear();
             GD.PrintErr(e);
             return false;
         }
-        return Entries.Any();
+
+        return flagHasEntries;
+    }
+
+    private void Clear()
+    {
+        Entries.Clear();
+        StarSystems.Clear();
+        GetChildren().ToList().ForEach(x => x.QueueFree());
+        Position = Vector2.Zero;
     }
 
     private static bool TryLoadStarSystem(string path, out StarSystemConfig config)
@@ -224,7 +234,7 @@ public partial class ShipLogsRoot : Node2D
 
         void AdjustForScale()
         {
-            Position /= prevScale.X / Scale.X;
+            Position *= Scale.X / prevScale.X;
         }
 
         if (Input.IsActionPressed("ZoomIn"))

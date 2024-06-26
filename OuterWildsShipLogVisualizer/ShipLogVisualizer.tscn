@@ -1,13 +1,17 @@
-[gd_scene load_steps=7 format=3 uid="uid://bhrumao3xyt0k"]
+[gd_scene load_steps=9 format=3 uid="uid://bhrumao3xyt0k"]
 
 [ext_resource type="Texture2D" uid="uid://blb0gssr2mvlb" path="res://assets/background.png" id="1_ytiey"]
 [ext_resource type="Texture2D" uid="uid://b14hmux4ngt6c" path="res://assets/reticle.png" id="2_fasd5"]
 [ext_resource type="Script" path="res://ShipLogsRoot.cs" id="2_k3lod"]
 [ext_resource type="PackedScene" uid="uid://5pfcul2avalu" path="res://ShipLogEntryDisplay.tscn" id="2_v87lv"]
-[ext_resource type="Script" path="res://FileControl.cs" id="5_smg78"]
+[ext_resource type="Script" path="res://ShipLogVisualizerUI.cs" id="5_utxee"]
+[ext_resource type="Script" path="res://DisplayManager.cs" id="6_6jv0d"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_86dj1"]
+bg_color = Color(0.32549, 0.32549, 0.32549, 0.6)
 
 [sub_resource type="LabelSettings" id="LabelSettings_qgnqi"]
-font_size = 32
+font_size = 24
 
 [node name="ShipLogVisualizer" type="Node2D"]
 
@@ -22,8 +26,6 @@ color = Color(0.00392157, 0.0627451, 0.105882, 1)
 z_index = 1
 texture = ExtResource("1_ytiey")
 
-[node name="Camera2D" type="Camera2D" parent="."]
-
 [node name="ShipLogsRoot" type="Node2D" parent="."]
 script = ExtResource("2_k3lod")
 ShipLogEntryScene = ExtResource("2_v87lv")
@@ -32,8 +34,10 @@ ShipLogEntryScene = ExtResource("2_v87lv")
 modulate = Color(1, 1, 1, 0.45098)
 texture = ExtResource("2_fasd5")
 
-[node name="FileControl" type="Control" parent="." node_paths=PackedStringArray("_openFileButton", "_openFileDialog", "_label", "_shipLogsRoot", "_reloadButton", "_options")]
-z_index = 100
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="ShipLogVisualizerUI" type="Control" parent="." node_paths=PackedStringArray("_selectFolderButton", "_selectFolderDialog", "_modLabel", "_starSystemSelection", "_reloadButton")]
+z_index = 10
 layout_mode = 3
 anchors_preset = 10
 anchor_right = 1.0
@@ -42,65 +46,92 @@ offset_top = -540.0
 offset_right = 960.0
 offset_bottom = -428.0
 grow_horizontal = 2
-script = ExtResource("5_smg78")
-_openFileButton = NodePath("HBoxContainer/Button")
-_openFileDialog = NodePath("FileDialog")
-_label = NodePath("HBoxContainer/Label")
-_shipLogsRoot = NodePath("../ShipLogsRoot")
-_reloadButton = NodePath("HBoxContainer/ReloadButton")
-_options = NodePath("HBoxContainer/OptionButton")
+script = ExtResource("5_utxee")
+_selectFolderButton = NodePath("Panel/MarginContainer/HBoxContainer/SelectFolderButton")
+_selectFolderDialog = NodePath("SelectFolderDialog")
+_modLabel = NodePath("Panel/MarginContainer/HBoxContainer/ModLabel")
+_starSystemSelection = NodePath("Panel/MarginContainer/HBoxContainer/StarSystemSelection")
+_reloadButton = NodePath("Panel/MarginContainer/HBoxContainer/ReloadButton")
 
-[node name="Panel" type="Panel" parent="FileControl"]
+[node name="Panel" type="Panel" parent="ShipLogVisualizerUI"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_bottom = -63.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_86dj1")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="FileControl"]
+[node name="MarginContainer" type="MarginContainer" parent="ShipLogVisualizerUI/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 16
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ShipLogVisualizerUI/Panel/MarginContainer"]
 clip_contents = true
 layout_mode = 2
-offset_right = 1920.0
-offset_bottom = 53.0
-grow_horizontal = 2
-grow_vertical = 2
 
-[node name="Button" type="Button" parent="FileControl/HBoxContainer"]
+[node name="SelectFolderButton" type="Button" parent="ShipLogVisualizerUI/Panel/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(320, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "Select root mod folder"
+theme_override_font_sizes/font_size = 24
+text = "Select mod folder"
 
-[node name="Spacer" type="Control" parent="FileControl/HBoxContainer"]
+[node name="Spacer" type="Control" parent="ShipLogVisualizerUI/Panel/MarginContainer/HBoxContainer"]
 custom_minimum_size = Vector2(20, 0)
 layout_mode = 2
 
-[node name="Label" type="Label" parent="FileControl/HBoxContainer"]
+[node name="ModLabel" type="Label" parent="ShipLogVisualizerUI/Panel/MarginContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+text = "No mod selected"
 label_settings = SubResource("LabelSettings_qgnqi")
 clip_text = true
 text_overrun_behavior = 1
 
-[node name="StarSystemLabel" type="Label" parent="FileControl/HBoxContainer"]
-custom_minimum_size = Vector2(240, 0)
+[node name="Spacer2" type="Control" parent="ShipLogVisualizerUI/Panel/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
+[node name="StarSystemLabel" type="Label" parent="ShipLogVisualizerUI/Panel/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 text = "Star system:"
 label_settings = SubResource("LabelSettings_qgnqi")
 clip_text = true
 text_overrun_behavior = 1
 
-[node name="OptionButton" type="OptionButton" parent="FileControl/HBoxContainer"]
-custom_minimum_size = Vector2(320, 0)
+[node name="Spacer3" type="Control" parent="ShipLogVisualizerUI/Panel/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(20, 0)
 layout_mode = 2
 
-[node name="ReloadButton" type="Button" parent="FileControl/HBoxContainer"]
+[node name="StarSystemSelection" type="OptionButton" parent="ShipLogVisualizerUI/Panel/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 24
+item_count = 1
+selected = 0
+popup/item_0/text = "SolarSystem"
+popup/item_0/id = 0
+
+[node name="Spacer4" type="Control" parent="ShipLogVisualizerUI/Panel/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
+[node name="ReloadButton" type="Button" parent="ShipLogVisualizerUI/Panel/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
 text = "Reload"
 
-[node name="FileDialog" type="FileDialog" parent="FileControl"]
+[node name="SelectFolderDialog" type="FileDialog" parent="ShipLogVisualizerUI"]
 mode = 2
 title = "Open a Directory"
 initial_position = 2
@@ -109,3 +140,6 @@ ok_button_text = "Select Current Folder"
 file_mode = 2
 access = 2
 use_native_dialog = true
+
+[node name="DisplayManager" type="Node" parent="."]
+script = ExtResource("6_6jv0d")

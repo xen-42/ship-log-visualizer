@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://govcd2fpscr2"
-path="res://.godot/imported/CT_CHERTS_CAMP.png-14826decf780fcab23963cc24cdcd659.ctex"
+uid="uid://e0og08raqndd"
+path="res://.godot/imported/CT_CHERT.png-1732f7ee8eec1d584eb386509fdd83ce.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/stockShiplogSprites/CT_CHERTS_CAMP.png"
-dest_files=["res://.godot/imported/CT_CHERTS_CAMP.png-14826decf780fcab23963cc24cdcd659.ctex"]
+source_file="res://assets/stockShiplogSprites/CT_CHERT.png"
+dest_files=["res://.godot/imported/CT_CHERT.png-1732f7ee8eec1d584eb386509fdd83ce.ctex"]
 
 [params]
 
