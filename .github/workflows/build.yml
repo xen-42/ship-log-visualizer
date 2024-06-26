@@ -103,11 +103,7 @@ jobs:
           path: ./OuterWildsShipLogVisualizer/StandaloneWindows64
       
       - name: Zip Asset
-        run: |
-          cd OuterWildsShipLogVisualizer/StandaloneWindows64
-          zip -r OuterWildsShipLogVisualizer.zip *
-          mv OuterWildsShipLogVisualizer.zip ..
-          cd ..
+        run: 7z a OuterWildsShipLogVisualizer.zip ./OuterWildsShipLogVisualizer/StandaloneWindows64/**
       
       - name: Upload Asset
         uses: ncipollo/release-action@v1
