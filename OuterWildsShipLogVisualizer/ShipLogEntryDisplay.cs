@@ -46,8 +46,8 @@ public partial class ShipLogEntryDisplay : Node2D
         _nameBackground.Color = color;
         _border.Modulate = color;
 
-        var texturePath = System.IO.Path.Combine(rootFolder, shipLogModule.spriteFolder, entry.id + ".png");
-        if (FileAccess.FileExists(texturePath))
+        var texturePath = System.IO.Path.Combine(rootFolder, shipLogModule.spriteFolder, entry.id + ".png").Replace("\\", "/");
+        if (FileAccess.FileExists(texturePath) || ResourceLoader.Exists(texturePath))
         {
             GD.Print($"Loading file at {texturePath}");
 
@@ -68,6 +68,7 @@ public partial class ShipLogEntryDisplay : Node2D
         else
         {
             GD.PrintErr($"Couldn't find texture at {texturePath}");
+            _label.Text = texturePath;
             _revealedImage.Visible = false;
         }
 

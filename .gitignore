@@ -11,3 +11,5 @@ mono_crash.*.json
 OuterWildsShipLogVisualizer/.godot/
 OuterWildsShipLogVisualizer/.godot/*
 OuterWildsShipLogVisualizer/Deckarium.csproj.user
+
+Exports/*
