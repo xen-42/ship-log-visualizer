@@ -5,3 +5,5 @@
 Allows you to load Outer Wilds New Horizons mods and view the ship log detective mode. 
 
 Intended to allow you to tinker with repositioning ship logs quickly without having to reload the entire game.
+
+Made using the Godot game engine [available under the MIT License](https://godotengine.org/license)
