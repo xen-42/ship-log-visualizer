@@ -1,0 +1,70 @@
+name: Build Game
+on: 
+  workflow_dispatch:
+
+jobs:
+  Build:
+    name: Build
+    runs-on: windows-latest
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      DOTNET_NOLOGO: true
+    defaults:
+      run:
+        # Use bash shells on all platforms.
+        shell: bash
+    steps:
+      - uses: actions/checkout@v3
+        name: 🧾 Checkout
+
+      - uses: actions/setup-dotnet@v3
+        name: 💽 Setup .NET SDK
+        with:
+          dotnet-version: 7.0.x
+
+      - name: 📦 Restore Dependencies
+        run: |
+          cd OuterWildsShipLogVisualizer
+          dotnet restore
+
+      - uses: chickensoft-games/setup-godot@v1
+        name: 🤖 Setup Godot
+        with:
+          # Version must include major, minor, and patch, and be >= 4.0.0
+          # Pre-release label is optional.
+          version: 4.2.2 # also valid: 4.0.0.rc1 or 4.0.0, etc
+          use-dotnet: true
+
+      - name: 🔬 Verify Setup
+        run: |
+          dotnet --version
+          godot --version
+
+      - name: Import
+        continue-on-error: true
+        run: |
+          cd OuterWildsShipLogVisualizer
+          timeout 25s godot --editor
+
+      - name: 🧑‍🔬 Generate .NET Bindings
+        run: |
+          cd OuterWildsShipLogVisualizer
+          godot --headless --build-solutions --quit || exit 0
+
+      - name: 🦺 Build Projects
+        run: |
+          cd OuterWildsShipLogVisualizer
+          dotnet build
+
+      - name: Export
+        run: |
+          export PATH=./rcedit:$PATH
+          cd OuterWildsShipLogVisualizer
+          mkdir StandaloneWindows64
+          godot --headless --export-release "Windows Desktop" ./StandaloneWindows64/OuterWildsShipLogVisualizer.exe
+      
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: OuterWildsShipLogVisualizer
+          path: ./OuterWildsShipLogVisualizer/StandaloneWindows64

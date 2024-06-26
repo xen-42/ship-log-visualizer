@@ -50,11 +50,20 @@ public partial class ShipLogEntryDisplay : Node2D
         if (FileAccess.FileExists(texturePath))
         {
             GD.Print($"Loading file at {texturePath}");
-            var img = new Image();
-            img.Load(texturePath);
-            var texture = new ImageTexture();
-            texture.SetImage(img);
-            _revealedImage.Texture = texture;
+
+            // Depending on if it's internal or external it must be loaded differently
+            if (texturePath.StartsWith("res://"))
+            {
+                _revealedImage.Texture = ResourceLoader.Load<Texture2D>(texturePath);
+            }
+            else
+            {
+                var img = new Image();
+                img.Load(texturePath);
+                var texture = new ImageTexture();
+                texture.SetImage(img);
+                _revealedImage.Texture = texture;
+            }
         }
         else
         {
