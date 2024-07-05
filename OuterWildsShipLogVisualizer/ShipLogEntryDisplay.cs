@@ -40,35 +40,49 @@ public partial class ShipLogEntryDisplay : Node2D
         }
 
         _label.Text = name;
-        Position = starSystem.entryPositions.First(x => x.id == entry.id).position.InvertY().ToVector2();
+        var entryPosition = starSystem.entryPositions?.FirstOrDefault(x => x.id == entry.id);
+        if (entryPosition != null)
+        {
+            Position = entryPosition.position.InvertY().ToVector2();
+        }
+        else
+        {
+            GD.PrintErr($"Couldn't find entry position for {entry.id}");
+        }
         var color = starSystem.curiosities?.FirstOrDefault(x => x.id == entry.curiosity)?.color?.ToColor() ?? new Color(0.41f, 0.41f, 0.41f);
 
         _nameBackground.Color = color;
         _border.Modulate = color;
 
-        var texturePath = System.IO.Path.Combine(rootFolder, shipLogModule.spriteFolder, entry.id + ".png").Replace("\\", "/");
-        if (FileAccess.FileExists(texturePath) || ResourceLoader.Exists(texturePath))
+        if (!string.IsNullOrEmpty(shipLogModule.spriteFolder))
         {
-            GD.Print($"Loading file at {texturePath}");
-
-            // Depending on if it's internal or external it must be loaded differently
-            if (texturePath.StartsWith("res://"))
+            var texturePath = System.IO.Path.Combine(rootFolder, shipLogModule.spriteFolder, entry.id + ".png").Replace("\\", "/");
+            if (FileAccess.FileExists(texturePath) || ResourceLoader.Exists(texturePath))
             {
-                _revealedImage.Texture = ResourceLoader.Load<Texture2D>(texturePath);
+                GD.Print($"Loading file at {texturePath}");
+
+                // Depending on if it's internal or external it must be loaded differently
+                if (texturePath.StartsWith("res://"))
+                {
+                    _revealedImage.Texture = ResourceLoader.Load<Texture2D>(texturePath);
+                }
+                else
+                {
+                    var img = new Image();
+                    img.Load(texturePath);
+                    var texture = new ImageTexture();
+                    texture.SetImage(img);
+                    _revealedImage.Texture = texture;
+                }
             }
             else
             {
-                var img = new Image();
-                img.Load(texturePath);
-                var texture = new ImageTexture();
-                texture.SetImage(img);
-                _revealedImage.Texture = texture;
+                GD.PrintErr($"Couldn't find texture at {texturePath}");
             }
         }
         else
         {
-            GD.PrintErr($"Couldn't find texture at {texturePath}");
-            _revealedImage.Visible = false;
+            GD.PrintErr($"No ship log sprite folder for {entry.id}");
         }
 
         if (!string.IsNullOrEmpty(entry.parentID))
