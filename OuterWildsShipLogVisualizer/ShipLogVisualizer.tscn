@@ -146,11 +146,12 @@ access = 2
 use_native_dialog = true
 
 [node name="VersionLabel" type="Label" parent="ShipLogVisualizerUI"]
+layout_mode = 0
 offset_left = 1495.0
 offset_top = 1050.0
 offset_right = 1911.0
 offset_bottom = 1073.0
-text = "Ship Log Visualizer 0.0.1 by xen-42"
+text = "Ship Log Visualizer 0.0.3 by xen-42"
 label_settings = SubResource("LabelSettings_g8i0j")
 horizontal_alignment = 2
 script = ExtResource("6_0m800")
