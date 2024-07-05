@@ -40,7 +40,15 @@ public partial class ShipLogEntryDisplay : Node2D
         }
 
         _label.Text = name;
-        Position = starSystem.entryPositions.First(x => x.id == entry.id).position.InvertY().ToVector2();
+        var entryPosition = starSystem.entryPositions?.FirstOrDefault(x => x.id == entry.id);
+        if (entryPosition != null)
+        {
+            Position = entryPosition.position.InvertY().ToVector2();
+        }
+        else
+        {
+            GD.PrintErr($"Couldn't find entry position for {entry.id}");
+        }
         var color = starSystem.curiosities?.FirstOrDefault(x => x.id == entry.curiosity)?.color?.ToColor() ?? new Color(0.41f, 0.41f, 0.41f);
 
         _nameBackground.Color = color;
