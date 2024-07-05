@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://5pfcul2avalu"]
+[gd_scene load_steps=7 format=3 uid="uid://5pfcul2avalu"]
 
 [ext_resource type="Script" path="res://ShipLogEntryDisplay.cs" id="1_o1y4u"]
 [ext_resource type="PackedScene" uid="uid://cymxtds8s7x64" path="res://ShipLogLink.tscn" id="2_nom5t"]
 [ext_resource type="Texture2D" uid="uid://l0qr8klwdbyw" path="res://assets/border.png" id="3_bdlln"]
+[ext_resource type="Texture2D" uid="uid://yo2xr3rsimwi" path="res://assets/stockShiplogSprites/DEFAULT_PHOTO.png" id="3_r5ldx"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_e4eue"]
 font_size = 64
@@ -86,6 +87,7 @@ custom_minimum_size = Vector2(256, 256)
 layout_mode = 0
 offset_right = 512.0
 offset_bottom = 512.0
+texture = ExtResource("3_r5ldx")
 expand_mode = 2
 
 [node name="Border" type="TextureRect" parent="CenterOffset"]

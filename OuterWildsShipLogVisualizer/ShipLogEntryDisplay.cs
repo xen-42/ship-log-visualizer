@@ -70,13 +70,11 @@ public partial class ShipLogEntryDisplay : Node2D
             else
             {
                 GD.PrintErr($"Couldn't find texture at {texturePath}");
-                _revealedImage.Visible = false;
             }
         }
         else
         {
             GD.PrintErr($"No ship log sprite folder for {entry.id}");
-            _revealedImage.Visible = false;
         }
 
         if (!string.IsNullOrEmpty(entry.parentID))
