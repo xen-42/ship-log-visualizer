@@ -46,28 +46,36 @@ public partial class ShipLogEntryDisplay : Node2D
         _nameBackground.Color = color;
         _border.Modulate = color;
 
-        var texturePath = System.IO.Path.Combine(rootFolder, shipLogModule.spriteFolder, entry.id + ".png").Replace("\\", "/");
-        if (FileAccess.FileExists(texturePath) || ResourceLoader.Exists(texturePath))
+        if (!string.IsNullOrEmpty(shipLogModule.spriteFolder))
         {
-            GD.Print($"Loading file at {texturePath}");
-
-            // Depending on if it's internal or external it must be loaded differently
-            if (texturePath.StartsWith("res://"))
+            var texturePath = System.IO.Path.Combine(rootFolder, shipLogModule.spriteFolder, entry.id + ".png").Replace("\\", "/");
+            if (FileAccess.FileExists(texturePath) || ResourceLoader.Exists(texturePath))
             {
-                _revealedImage.Texture = ResourceLoader.Load<Texture2D>(texturePath);
+                GD.Print($"Loading file at {texturePath}");
+
+                // Depending on if it's internal or external it must be loaded differently
+                if (texturePath.StartsWith("res://"))
+                {
+                    _revealedImage.Texture = ResourceLoader.Load<Texture2D>(texturePath);
+                }
+                else
+                {
+                    var img = new Image();
+                    img.Load(texturePath);
+                    var texture = new ImageTexture();
+                    texture.SetImage(img);
+                    _revealedImage.Texture = texture;
+                }
             }
             else
             {
-                var img = new Image();
-                img.Load(texturePath);
-                var texture = new ImageTexture();
-                texture.SetImage(img);
-                _revealedImage.Texture = texture;
+                GD.PrintErr($"Couldn't find texture at {texturePath}");
+                _revealedImage.Visible = false;
             }
         }
         else
         {
-            GD.PrintErr($"Couldn't find texture at {texturePath}");
+            GD.PrintErr($"No ship log sprite folder for {entry.id}");
             _revealedImage.Visible = false;
         }
 
