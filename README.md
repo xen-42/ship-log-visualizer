@@ -1,5 +1,7 @@
 # Outer Wilds Ship Log Visualizer
 
+![Downloads](https://img.shields.io/github/downloads/xen-42/ship-log-visualizer/total)
+
 ![image](https://github.com/xen-42/ship-log-visualizer/assets/22628069/a9e9752b-a692-4350-afc3-4c165d86e7a1)
 
 Allows you to load Outer Wilds New Horizons mods and view the ship log detective mode. 
